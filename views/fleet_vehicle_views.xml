@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="fleet_vehicle_view_form_inherit_spareparts" model="ir.ui.view">
+        <field name="name">fleet.vehicle.form.inherit.spareparts</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="inherit_id" ref="fleet.fleet_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[1]" position="before">
+                <page string="Spare Parts" name="spare_parts">
+                    <field name="spare_part_ids">
+                        <list editable="bottom">
+                            <field name="name"/>
+                            <field name="part_number"/>
+                            <field name="price"/>
+                            <field name="quantity"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
