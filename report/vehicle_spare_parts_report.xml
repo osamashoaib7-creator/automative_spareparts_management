@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Adds "Vehicle Spare Parts Report" to the Print menu on the vehicle form -->
+    <record id="action_report_vehicle_spare_parts" model="ir.actions.report">
+        <field name="name">Vehicle Spare Parts Report</field>
+        <field name="model">fleet.vehicle</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">automotive_spareparts_management.report_vehicle_spare_parts</field>
+        <field name="report_file">automotive_spareparts_management.report_vehicle_spare_parts</field>
+        <field name="print_report_name">'Spare Parts - %s' % (object.license_plate or object.display_name)</field>
+        <field name="binding_model_id" ref="fleet.model_fleet_vehicle"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_vehicle_spare_parts">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="vehicle">
+            <t t-call="web.external_layout">
+                <div class="page" style="font-size:13px;">
+
+                    <!-- Title bar -->
+                    <div style="background:#1f4e79; color:#fff; padding:10px 16px; margin-bottom:18px;">
+                        <h3 style="margin:0; font-weight:600;">Vehicle Spare Parts Report</h3>
+                        <div style="font-size:12px; opacity:0.85;">
+                            <span t-field="vehicle.brand_id"/> -
+                            <span t-field="vehicle.model_id"/> |
+                            <span t-field="vehicle.license_plate"/>
+                        </div>
+                    </div>
+
+                    <!-- Vehicle details -->
+                    <h5 style="color:#1f4e79; border-bottom:2px solid #1f4e79; padding-bottom:4px;">
+                        Vehicle Details
+                    </h5>
+                    <table style="width:100%; border-collapse:collapse; margin:10px 0 22px 0;">
+                        <tr>
+                            <td style="width:18%; background:#eef3f8; padding:7px 10px; border:1px solid #cfd8e3;"><strong>Company / Brand</strong></td>
+                            <td style="width:32%; padding:7px 10px; border:1px solid #cfd8e3;"><span t-field="vehicle.brand_id"/></td>
+                            <td style="width:18%; background:#eef3f8; padding:7px 10px; border:1px solid #cfd8e3;"><strong>Model</strong></td>
+                            <td style="width:32%; padding:7px 10px; border:1px solid #cfd8e3;"><span t-field="vehicle.model_id"/></td>
+                        </tr>
+                        <tr>
+                            <td style="background:#eef3f8; padding:7px 10px; border:1px solid #cfd8e3;"><strong>License Plate</strong></td>
+                            <td style="padding:7px 10px; border:1px solid #cfd8e3;"><span t-field="vehicle.license_plate"/></td>
+                            <td style="background:#eef3f8; padding:7px 10px; border:1px solid #cfd8e3;"><strong>Color</strong></td>
+                            <td style="padding:7px 10px; border:1px solid #cfd8e3;"><span t-field="vehicle.color"/></td>
+                        </tr>
+                        <tr>
+                            <td style="background:#eef3f8; padding:7px 10px; border:1px solid #cfd8e3;"><strong>Vehicle Type</strong></td>
+                            <td style="padding:7px 10px; border:1px solid #cfd8e3;"><span t-field="vehicle.vehicle_type"/></td>
+                            <td style="background:#eef3f8; padding:7px 10px; border:1px solid #cfd8e3;"><strong>Fuel Type</strong></td>
+                            <td style="padding:7px 10px; border:1px solid #cfd8e3;"><span t-field="vehicle.fuel_type"/></td>
+                        </tr>
+                    </table>
+
+                    <!-- Spare parts -->
+                    <h5 style="color:#1f4e79; border-bottom:2px solid #1f4e79; padding-bottom:4px;">
+                        Assigned Spare Parts
+                    </h5>
+                    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                        <thead>
+                            <tr style="background:#1f4e79; color:#fff;">
+                                <th style="padding:8px; text-align:center; width:5%;">#</th>
+                                <th style="padding:8px; text-align:left;">Part Name</th>
+                                <th style="padding:8px; text-align:left;">Part Number</th>
+                                <th style="padding:8px; text-align:right;">Qty</th>
+                                <th style="padding:8px; text-align:right;">Unit Price (PKR)</th>
+                                <th style="padding:8px; text-align:right;">Total (PKR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="grand_total" t-value="0"/>
+                            <t t-set="total_qty" t-value="0"/>
+                            <t t-foreach="vehicle.spare_part_ids" t-as="part">
+                                <t t-set="line_total" t-value="part.price * part.quantity"/>
+                                <t t-set="grand_total" t-value="grand_total + line_total"/>
+                                <t t-set="total_qty" t-value="total_qty + part.quantity"/>
+                                <tr t-attf-style="background:#{'#f5f8fb' if part_index % 2 else '#ffffff'};">
+                                    <td style="padding:7px; text-align:center; border-bottom:1px solid #dde4ec;"><t t-esc="part_index + 1"/></td>
+                                    <td style="padding:7px; border-bottom:1px solid #dde4ec;"><span t-field="part.name"/></td>
+                                    <td style="padding:7px; border-bottom:1px solid #dde4ec;"><span t-field="part.part_number"/></td>
+                                    <td style="padding:7px; text-align:right; border-bottom:1px solid #dde4ec;"><span t-field="part.quantity"/></td>
+                                    <td style="padding:7px; text-align:right; border-bottom:1px solid #dde4ec;"><t t-esc="'{:,.2f}'.format(part.price)"/></td>
+                                    <td style="padding:7px; text-align:right; border-bottom:1px solid #dde4ec;"><t t-esc="'{:,.2f}'.format(line_total)"/></td>
+                                </tr>
+                            </t>
+                            <tr t-if="not vehicle.spare_part_ids">
+                                <td colspan="6" style="padding:14px; text-align:center; color:#888;">
+                                    No spare parts assigned to this vehicle.
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot t-if="vehicle.spare_part_ids">
+                            <tr style="background:#eef3f8;">
+                                <td colspan="3" style="padding:8px; text-align:right;"><strong>Total Quantity</strong></td>
+                                <td style="padding:8px; text-align:right;"><strong><t t-esc="total_qty"/></strong></td>
+                                <td style="padding:8px; text-align:right;"><strong>Grand Total</strong></td>
+                                <td style="padding:8px; text-align:right; color:#1f4e79; font-size:14px;">
+                                    <strong><t t-esc="'{:,.2f}'.format(grand_total)"/></strong>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!-- Signature area -->
+                    <div style="margin-top:60px; width:100%;">
+                        <div style="float:left; width:40%; border-top:1px solid #333; padding-top:4px; text-align:center;">
+                            Prepared By
+                        </div>
+                        <div style="float:right; width:40%; border-top:1px solid #333; padding-top:4px; text-align:center;">
+                            Approved By
+                        </div>
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </t>
+</template>
+    </odoo>
